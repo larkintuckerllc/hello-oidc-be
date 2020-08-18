@@ -17,13 +17,14 @@ const auth = new google.auth.OAuth2(
 const app = express();
 
 app.get('/login', (req, res) => {
-  const { state } = req.query;
-  if (state === undefined) {
-    res.status(400).send('missing state URL parameter');
+  const { nonce, state } = req.query;
+  if (state === undefined || nonce === undefined) {
+    res.status(400).send('missing state URL parameters state and nonce');
     return;
   }
   const loginUri = auth.generateAuthUrl({
     access_type: 'offline',
+    nonce,
     scope: 'https://www.googleapis.com/auth/userinfo.email',
     state,
   });
