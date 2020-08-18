@@ -13,15 +13,22 @@ const auth = new google.auth.OAuth2(
   process.env.CLIENT_SECRET,
   process.env.REDIRECT_URI
 );
-const loginUri = auth.generateAuthUrl({
-  access_type: 'offline',
-  prompt: 'consent',
-  scope: process.env.SCOPE,
-});
 
 const app = express();
 
-app.get('/login', (req, res) => res.redirect(loginUri));
+app.get('/login', (req, res) => {
+  const { state } = req.query;
+  if (state === undefined) {
+    res.status(400).send('missing state URL parameter');
+    return;
+  }
+  const loginUri = auth.generateAuthUrl({
+    access_type: 'offline',
+    scope: 'https://www.googleapis.com/auth/userinfo.email',
+    state,
+  });
+  res.redirect(loginUri);
+});
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
