@@ -4,6 +4,7 @@ const express = require('express');
 const googleapis = require('googleapis');
 
 const { google } = googleapis;
+const AUTHORIZATION_RE = /^Bearer (?<token>.+)/;
 
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
@@ -52,6 +53,18 @@ app.get('/get-tokens', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
+  const authorization = req.header('Authorization');
+  if (authorization === undefined) {
+    res.status(401).send('unauthorized');
+    return;
+  }
+  const found = authorization.match(AUTHORIZATION_RE);
+  if (found === null) {
+    res.status(401).send('unauthorized');
+    return;
+  }
+  const { groups: { token } } = found;
+  // VALIDATE TOKEN
   res.send({ hello: 'world!'});
 });
 
