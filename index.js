@@ -1,3 +1,4 @@
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const express = require('express');
@@ -41,6 +42,7 @@ const execute = async () => {
 
     // EXPRESS
     const app = express();
+    app.use(bodyParser.json());
     app.use(cors())
     app.get('/login-screen', (req, res) => {
       const { nonce, state } = req.query;
@@ -57,8 +59,20 @@ const execute = async () => {
       });
       res.redirect(loginUri);
     });
-    app.get('/get-tokens', async (req, res) => {
-      const { code } = req.query;
+    /*
+    app.get('/refresh-tokens', async (req, res) => {
+      const { refresh_token } = req.query;
+      if (refresh_token === undefined) {
+        res.status(400).send('missing reURL parameters');
+        return;
+      }
+      //
+        const stuff = await auth.refreshToken(refresh_token);
+        console.log(stuff);
+    });
+    */
+    app.post('/get-tokens', async (req, res) => {
+      const { code } = req.body;
       if (code === undefined) {
         res.status(400).send('missing code URL parameters');
         return;
@@ -85,6 +99,7 @@ const execute = async () => {
         return;
       }
       const { groups: { token } } = found;
+      // TODO: ACTUALLY VERIFY
       const { email } = jwt.verify(token, publicKey);
       res.send({ hello: email });
     });
