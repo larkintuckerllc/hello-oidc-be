@@ -9,7 +9,9 @@ const googleapis = require('googleapis');
 
 const { google } = googleapis;
 const AUTHORIZATION_RE = /^Bearer (?<token>.+)/;
+const GOOGLE_ISSUER = 'https://accounts.google.com';
 const GOOGLE_OPENID_CONFIG = 'https://accounts.google.com/.well-known/openid-configuration';
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/userinfo.email';
 
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
@@ -54,7 +56,7 @@ const execute = async () => {
         access_type: 'offline',
         prompt: 'consent',
         nonce,
-        scope: 'https://www.googleapis.com/auth/userinfo.email',
+        scope: GOOGLE_SCOPE,
         state,
       });
       res.redirect(loginUri);
@@ -100,9 +102,15 @@ const execute = async () => {
         return;
       }
       const { groups: { token } } = found;
-      // TODO: VERIFY
       try {
-        const { email } = jwt.verify(token, publicKey);
+        const { email } = jwt.verify(
+          token,
+          publicKey,
+          {
+            audience: process.env.CLIENT_ID,
+            issuer: GOOGLE_ISSUER,
+          }
+        );
         res.send({ hello: email });
       } catch (err) {
         res.status(401).send('unauthorized');
