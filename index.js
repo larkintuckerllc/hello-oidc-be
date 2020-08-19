@@ -52,7 +52,7 @@ app.get('/get-tokens', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send({ hello: 'world!'});
 });
 
 app.listen(process.env.PORT, () => {
