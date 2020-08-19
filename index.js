@@ -59,18 +59,6 @@ const execute = async () => {
       });
       res.redirect(loginUri);
     });
-    /*
-    app.get('/refresh-tokens', async (req, res) => {
-      const { refresh_token } = req.query;
-      if (refresh_token === undefined) {
-        res.status(400).send('missing reURL parameters');
-        return;
-      }
-      //
-        const stuff = await auth.refreshToken(refresh_token);
-        console.log(stuff);
-    });
-    */
     app.post('/get-tokens', async (req, res) => {
       const { code } = req.body;
       if (code === undefined) {
@@ -87,6 +75,19 @@ const execute = async () => {
         res.status(401).send('unauthorized');
       }
     });
+    app.post('/refresh-tokens', async (req, res) => {
+      const { refresh_token } = req.body;
+      if (refresh_token === undefined) {
+        res.status(400).send('missing refresh_token URL parameters');
+        return;
+      }
+      try {
+        const { tokens: { id_token } } = await auth.refreshToken(refresh_token);
+        res.send({ id_token });
+      } catch (err) {
+        res.status(401).send('unauthorized');
+      }
+    });
     app.get('/', (req, res) => {
       const authorization = req.header('Authorization');
       if (authorization === undefined) {
@@ -99,9 +100,13 @@ const execute = async () => {
         return;
       }
       const { groups: { token } } = found;
-      // TODO: ACTUALLY VERIFY
-      const { email } = jwt.verify(token, publicKey);
-      res.send({ hello: email });
+      // TODO: VERIFY
+      try {
+        const { email } = jwt.verify(token, publicKey);
+        res.send({ hello: email });
+      } catch (err) {
+        res.status(401).send('unauthorized');
+      }
     });
     app.listen(process.env.PORT, () => {
       console.log(`Example app listening at http://localhost:${process.env.PORT}`);
