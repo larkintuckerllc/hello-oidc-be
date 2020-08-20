@@ -39,7 +39,7 @@ const execute = async () => {
     const jwksClient = jwksRSA({
       jwksUri: jwks_uri,
     });
-    const key = await jwksClient.getSigningKeyAsync(keys[1].kid);
+    const key = await jwksClient.getSigningKeyAsync(keys[1].kid); // TODO: CONSIDER GETTING ALL KEYS
     const publicKey = key.getPublicKey();
 
     // EXPRESS
